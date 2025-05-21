@@ -29,6 +29,7 @@ import { TagStyle } from '@sourceflow/gitgraph-core/lib/template';
 
 const BRANCH_LABEL_PADDING_X = 10;
 const BRANCH_LABEL_PADDING_Y = 4;
+const BRANCH_LABEL_MAX_LENGTH = 20;
 
 const TAG_LABEL_PADDING_X = 10;
 const TAG_LABEL_PADDING_Y = 5;
@@ -113,8 +114,12 @@ export class SVGElementHelperService {
         stroke: gitGraphBranch.style.label.strokeColor || gitGraphBranch.computedColor,
         fill: gitGraphBranch.style.label.bgColor
     });
+    const branchName = commit.commitLabel || gitGraphBranch.name;
+    const displayName = branchName.length > BRANCH_LABEL_MAX_LENGTH
+        ? branchName.substring(0, BRANCH_LABEL_MAX_LENGTH) + '...'
+        : branchName;
     const text = createText({
-        content: commit.commitLabel || gitGraphBranch.name,
+        content: displayName,
         translate: {
             x: BRANCH_LABEL_PADDING_X,
             y: 0
@@ -122,6 +127,11 @@ export class SVGElementHelperService {
         font: gitGraphBranch.style.label.font,
         fill: gitGraphBranch.style.label.color || gitGraphBranch.computedColor
     });
+    if (branchName.length > BRANCH_LABEL_MAX_LENGTH) {
+        const titleElement = document.createElementNS(SVG_NAMESPACE, 'title');
+        titleElement.textContent = branchName;
+        text.appendChild(titleElement);
+    }
     const branchLabel: SVGGElement = document.createElementNS(SVG_NAMESPACE, 'g');
     branchLabel.setAttribute(
         'transform',

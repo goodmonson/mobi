@@ -105,4 +105,16 @@ describe('SVGElementHelperService', () => {
     const svg = service.renderCommitMessage(commitSVGElement, 'dateString');
     expect(svg).toBeTruthy();
   });
+  it('renderBranchLabel truncates long titles and adds tooltip', () => {
+    const branchLabelSVGElement: GitGraphBranch = jasmine.createSpyObj(GitGraphBranch, ['onClick'], {
+      name: 'this-is-a-very-long-branch-title-exceeding-limit'
+    });
+    branchLabelSVGElement.style = branchStyle;
+    const commitLabel: GitGraphCommit = jasmine.createSpyObj(GitGraphCommit, ['onClick']);
+    const svg = service.renderBranchLabel(branchLabelSVGElement, commitLabel);
+    const text = svg.querySelector('text');
+    expect(text.textContent).toContain('...');
+    const title = text.querySelector('title');
+    expect(title.textContent).toBe('this-is-a-very-long-branch-title-exceeding-limit');
+  });
 });
