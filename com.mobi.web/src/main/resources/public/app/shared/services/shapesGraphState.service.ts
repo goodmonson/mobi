@@ -44,6 +44,7 @@ import { PolicyEnforcementService } from './policyEnforcement.service';
 import { getBeautifulIRI, getDctermsValue, getPropertyId } from '../utility';
 import { XACMLRequest } from '../models/XACMLRequest.interface';
 import { MergeRequestManagerService } from './mergeRequestManager.service';
+import { SettingManagerService } from './settingManager.service';
 import { EventPayload, EventTypeConstants, EventWithPayload } from '../models/eventWithPayload.interface';
 import { RdfDownload } from '../models/rdfDownload.interface';
 import { RdfUpdate } from '../models/rdfUpdate.interface';
@@ -64,7 +65,8 @@ export class ShapesGraphStateService extends VersionedRdfState<ShapesGraphListIt
               protected toast: ToastService,
               protected pep: PolicyEnforcementService,
               private pm: PolicyManagerService,
-              private sgm: ShapesGraphManagerService) {
+              private sgm: ShapesGraphManagerService,
+              private stm: SettingManagerService) {
     super(SHAPESGRAPHSTATE,
       BRANCHID,
       TAGID,
@@ -160,7 +162,7 @@ export class ShapesGraphStateService extends VersionedRdfState<ShapesGraphListIt
    * Returns the namespace to be used for new ShapesGraphRecords
    */
   getDefaultNamespace(): Observable<string> {
-    return of('http://mobi.solutions/ontologies/shapes-graph/');
+    return this.stm.getDefaultShapesGraphNamespace();
   }
   /**
    * Returns the display name of an entity within the currently selected ShapesGraphRecord. Currently just returns the

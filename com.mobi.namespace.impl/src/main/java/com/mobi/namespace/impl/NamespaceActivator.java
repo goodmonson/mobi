@@ -36,14 +36,14 @@ import org.osgi.service.component.annotations.Reference;
 import java.io.IOException;
 import java.io.InputStream;
 
-@Component(name = SimpleNamespaceService.COMPONENT_NAME, immediate = true)
-public class SimpleNamespaceService implements NamespaceService {
+@Component(name = NamespaceActivator.COMPONENT_NAME, service = NamespaceService.class, immediate = true)
+public class NamespaceActivator implements NamespaceService {
 
     static final String COMPONENT_NAME = "com.mobi.namespace.api.NamespaceService";
 
     private static final String NAMESPACE_ONTOLOGY_NAME = "http://mobi.com/ontologies/namespace";
     private static final String DEFAULT_NAMESPACE_IRI = "http://mobi.com/ontologies/namespace/DefaultOntologyNamespace/";
-    private String defaultOntologyNamespace = "http://mobi.com/ontologies/";
+
     final ValueFactory vf = new ValidatingValueFactory();
 
     @Reference
@@ -55,15 +55,5 @@ public class SimpleNamespaceService implements NamespaceService {
         InputStream namespaceOntology = NamespaceService.class.getResourceAsStream("/namespace.ttl");
         Model model = settingUtilsService.updateRepoWithSettingDefinitions(namespaceOntology, NAMESPACE_ONTOLOGY_NAME);
         settingUtilsService.initializeApplicationSettingsWithDefaultValues(model, vf.createIRI(DEFAULT_NAMESPACE_IRI));
-    }
-
-    @Override
-    public void setDefaultOntologyNamespace(String namespace) {
-        this.defaultOntologyNamespace = namespace;
-    }
-
-    @Override
-    public String getDefaultOntologyNamespace() {
-        return this.defaultOntologyNamespace;
     }
 }

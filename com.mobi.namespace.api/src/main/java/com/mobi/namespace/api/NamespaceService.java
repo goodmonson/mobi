@@ -23,19 +23,15 @@ package com.mobi.namespace.api;
  * #L%
  */
 
+/**
+ * Marker service used only to load namespace related setting definitions.
+ * <p>
+ * Consumers should obtain namespace values via the {@code ApplicationSettingService}.
+ */
 public interface NamespaceService {
 
     /**
-     * Sets the default ontology namespace to be used by the Application. Must be a valid IRI prefix.
-     *
-     * @param namespace The default ontology to be used by the application.
+     * Fallback namespace used when no application setting is defined.
      */
-    void setDefaultOntologyNamespace(String namespace);
-
-    /**
-     * Retrieves the default ontology namespace.
-     *
-     * @return String The default ontology namespace.
-     */
-    String getDefaultOntologyNamespace();
+    String DEFAULT_ONTOLOGY_NAMESPACE = "https://mobi.com/ontologies/";
 }

@@ -47,6 +47,7 @@ import { ShapesGraphListItem } from '../models/shapesGraphListItem.class';
 import { ShapesGraphManagerService } from './shapesGraphManager.service';
 import { StateManagerService } from './stateManager.service';
 import { ToastService } from './toast.service';
+import { SettingManagerService } from './settingManager.service';
 import { VersionedRdfStateBase } from '../models/versionedRdfStateBase.interface';
 import { VersionedRdfUploadResponse } from '../models/versionedRdfUploadResponse.interface';
 import { ShapesGraphStateService } from './shapesGraphState.service';
@@ -58,6 +59,7 @@ describe('Shapes Graph State service', function() {
   let policyEnforcementStub: jasmine.SpyObj<PolicyEnforcementService>;
   let shapesGraphManagerStub: jasmine.SpyObj<ShapesGraphManagerService>;
   let toastStub: jasmine.SpyObj<ToastService>;
+  let settingManagerStub: jasmine.SpyObj<SettingManagerService>;
   let _catalogManagerActionSubject: Subject<EventWithPayload>;
   let _mergeRequestManagerActionSubject: Subject<EventWithPayload>;
 
@@ -85,7 +87,8 @@ describe('Shapes Graph State service', function() {
         MockProvider(PolicyManagerService),
         MockProvider(ShapesGraphManagerService),
         MockProvider(StateManagerService),
-        MockProvider(ToastService)
+        MockProvider(ToastService),
+        MockProvider(SettingManagerService)
       ]
     });
     shapesGraphManagerStub = TestBed.inject(ShapesGraphManagerService) as jasmine.SpyObj<ShapesGraphManagerService>;
@@ -97,6 +100,8 @@ describe('Shapes Graph State service', function() {
 
     mergeRequestManagerServiceStub = TestBed.inject(MergeRequestManagerService) as jasmine.SpyObj<MergeRequestManagerService>;
     toastStub = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
+    settingManagerStub = TestBed.inject(SettingManagerService) as jasmine.SpyObj<SettingManagerService>;
+    settingManagerStub.getDefaultShapesGraphNamespace.and.returnValue(of('http://mobi.solutions/ontologies/shapes-graph/'));
     catalogManagerStub = TestBed.inject(CatalogManagerService) as jasmine.SpyObj<CatalogManagerService>;
     catalogManagerStub.localCatalog = {'@id': catalogId, '@type': []};
     
@@ -117,6 +122,7 @@ describe('Shapes Graph State service', function() {
     shapesGraphManagerStub = null;
     catalogManagerStub = null;
     policyEnforcementStub = null;
+    settingManagerStub = null;
     _catalogManagerActionSubject = null;
     _mergeRequestManagerActionSubject = null;
   });
@@ -125,8 +131,9 @@ describe('Shapes Graph State service', function() {
     expect(service['catalogId']).toEqual(catalogId);
   });
   it('getDefaultNamespace provides the default namespace to be used for new shapes graphs', fakeAsync(function() {
+    settingManagerStub.getDefaultShapesGraphNamespace.and.returnValue(of('http://example.com/shapes-graph/'));
     service.getDefaultNamespace().subscribe(value => {
-      expect(value).toContain('shapes-graph');
+      expect(value).toEqual('http://example.com/shapes-graph/');
     });
     tick();
   }));

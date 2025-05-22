@@ -51,12 +51,9 @@ public class SimpleOntologyId implements OntologyId {
         private IRI versionIRI;
         private Model model;
         private final SettingService<ApplicationSetting> settingService;
-        private final NamespaceService namespaceService;
 
-        public Builder(SettingService<ApplicationSetting> settingService,
-                       NamespaceService namespaceService) {
+        public Builder(SettingService<ApplicationSetting> settingService) {
             this.settingService = settingService;
-            this.namespaceService = namespaceService;
         }
 
         /**
@@ -93,7 +90,6 @@ public class SimpleOntologyId implements OntologyId {
 
     private SimpleOntologyId(Builder builder) {
         SettingService<ApplicationSetting> settingService = builder.settingService;
-        NamespaceService namespaceService = builder.namespaceService;
 
         if (builder.model != null) {
             builder.ontologyIRI = null;
@@ -129,7 +125,7 @@ public class SimpleOntologyId implements OntologyId {
                     .getHasDataValue().isPresent()) {
                 ontologyNamespace = ontologyNamespaceApplicationSetting.get().getHasDataValue().get().stringValue();
             } else {
-                ontologyNamespace = namespaceService.getDefaultOntologyNamespace();
+                ontologyNamespace = NamespaceService.DEFAULT_ONTOLOGY_NAMESPACE;
             }
             this.identifier = vf.createIRI(ontologyNamespace + UUID.randomUUID());
         }

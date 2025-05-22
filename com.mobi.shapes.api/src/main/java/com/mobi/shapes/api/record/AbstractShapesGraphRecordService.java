@@ -34,7 +34,10 @@ import com.mobi.catalog.api.record.statistic.Statistic;
 import com.mobi.catalog.api.record.statistic.StatisticDefinition;
 import com.mobi.exception.MobiException;
 import com.mobi.jaas.api.ontologies.usermanagement.User;
+import com.mobi.namespace.api.ontologies.DefaultShapesGraphNamespaceApplicationSetting;
 import com.mobi.ontology.utils.OntologyModels;
+import com.mobi.setting.api.SettingService;
+import com.mobi.setting.api.ontologies.setting.ApplicationSetting;
 import com.mobi.shapes.api.ShapesGraphManager;
 import com.mobi.shapes.api.ontologies.shapesgrapheditor.ShapesGraphRecord;
 import org.apache.commons.io.IOUtils;
@@ -54,6 +57,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
@@ -68,12 +72,15 @@ public abstract class AbstractShapesGraphRecordService<T extends ShapesGraphReco
     @Reference
     public ShapesGraphManager shapesGraphManager;
 
+    @Reference(target = "(settingType=Application)")
+    protected SettingService<ApplicationSetting> settingService;
+
     /**
      * Semaphore for protecting shapes graph IRI uniqueness checks.
      */
     private final Semaphore semaphore = new Semaphore(1, true);
 
-    public static final String DEFAULT_PREFIX = "http://mobi.com/ontologies/shapes-graph/";
+    public static final String DEFAULT_PREFIX = "https://mobi.solutions/ontologies/shapes-graph/";
 
     static {
         try {
@@ -160,13 +167,22 @@ public abstract class AbstractShapesGraphRecordService<T extends ShapesGraphReco
                 .forEach(ontologyDefinitions::addAll);
 
         Resource ontologyIRI = OntologyModels.findFirstOntologyIRI(ontologyDefinitions)
-                .orElse(vf.createIRI(DEFAULT_PREFIX + UUID.randomUUID()));
+                .orElse(vf.createIRI(getShapesGraphNamespace() + UUID.randomUUID()));
 
         conn.add(ontologyIRI,  RDF.TYPE, OWL.ONTOLOGY, headGraph);
 
         validateShapesGraph(ontologyIRI);
         record.setTrackedIdentifier(ontologyIRI);
         thingManager.updateObject(record, conn);
+    }
+
+    private String getShapesGraphNamespace() {
+        Optional<ApplicationSetting> namespaceSetting = settingService.getSettingByType(
+                vf.createIRI(DefaultShapesGraphNamespaceApplicationSetting.TYPE));
+        if (namespaceSetting.isPresent() && namespaceSetting.get().getHasDataValue().isPresent()) {
+            return namespaceSetting.get().getHasDataValue().get().stringValue();
+        }
+        return DEFAULT_PREFIX;
     }
 
     /**
