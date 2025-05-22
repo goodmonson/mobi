@@ -51,6 +51,8 @@ export class SettingManagerService {
     defaultOntologyNamespaceSetting = 'http://mobi.com/ontologies/namespace#DefaultOntologyNamespaceApplicationSetting';
     defaultOntologyNamespacePropertyShape = 'http://mobi.com/ontologies/namespace#DefaultOntologyNamespaceApplication'
         + 'SettingPropertyShape';
+    defaultShapesGraphNamespaceSetting = 'http://mobi.com/ontologies/namespace#DefaultShapesGraphNamespaceApplicationSetting';
+    defaultShapesGraphNamespacePropertyShape = 'http://mobi.com/ontologies/namespace#DefaultShapesGraphNamespaceApplicationSettingPropertyShape';
 
     constructor(private http: HttpClient, private toast: ToastService, private spinnerSvc: ProgressSpinnerService) {}
 
@@ -78,6 +80,52 @@ export class SettingManagerService {
                     switchMap(response => {
                         const newArray = response.filter(el => {
                             return el['@id'] === this.defaultOntologyNamespacePropertyShape;
+                        });
+                        if (newArray.length !== 1) {
+                            this.toast.createErrorToast(`Number of matching property shapes must be one, not ${newArray.length}`);
+                            return throwError('');
+                        }
+                        const defaultNamespacePropertyShape = newArray[0];
+                        if (has(defaultNamespacePropertyShape, `${SHACL}defaultValue`)) {
+                            return of(getPropertyValue(defaultNamespacePropertyShape, `${SHACL}defaultValue`));
+                        } else {
+                            this.toast.createErrorToast('No default value found for default namespace');
+                            return throwError('');
+                        }
+                    }),
+                    catchError(() => {
+                        this.toast.createErrorToast('Could not retrieve setting definitions');
+                        return throwError('');
+                    })
+                );
+            }),
+        );
+    }
+
+    getDefaultShapesGraphNamespace(): Observable<string> {
+        return this.getApplicationSettingByType(this.defaultShapesGraphNamespaceSetting).pipe(
+            switchMap(response => {
+                const applicationSetting = response;
+                if (applicationSetting.length > 1) {
+                    this.toast.createErrorToast('Too many values present for application setting');
+                    return throwError('');
+                } else if (applicationSetting.length === 1) {
+                    const defaultNamespace = applicationSetting[0];
+                    if (has(defaultNamespace, SettingConstants.HAS_DATA_VALUE)) {
+                        return of(getPropertyValue(defaultNamespace, SettingConstants.HAS_DATA_VALUE));
+                    }
+                    return throwError('');
+                } else {
+                    this.toast.createErrorToast('No values found for application setting. For some reason, endpoint '
+                        + 'did not return error.');
+                    return throwError('');
+                }
+            }),
+            catchError(() => {
+                return this.getApplicationSettingDefinitions(this.namespaceGroup).pipe(
+                    switchMap(response => {
+                        const newArray = response.filter(el => {
+                            return el['@id'] === this.defaultShapesGraphNamespacePropertyShape;
                         });
                         if (newArray.length !== 1) {
                             this.toast.createErrorToast(`Number of matching property shapes must be one, not ${newArray.length}`);
